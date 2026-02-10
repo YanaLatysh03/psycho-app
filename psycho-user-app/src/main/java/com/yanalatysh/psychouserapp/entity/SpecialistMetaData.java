@@ -16,6 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SpecialistMetaData {
+    // Профиль специалиста
     @Id
     @Column(name = "profile_id")
     private Long id;
