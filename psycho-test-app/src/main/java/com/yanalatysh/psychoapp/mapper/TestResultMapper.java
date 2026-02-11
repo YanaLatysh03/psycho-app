@@ -1,5 +1,6 @@
 package com.yanalatysh.psychoapp.mapper;
 
+import com.yanalatysh.psychoapp.dto.AnonymousTestResultDTO;
 import com.yanalatysh.psychoapp.dto.TestResultDTO;
 import com.yanalatysh.psychoapp.dto.TestResultDetailsDTO;
 import com.yanalatysh.psychoapp.entity.TestResult;
@@ -21,4 +22,9 @@ public interface TestResultMapper {
     @Mapping(target = "interpretation", ignore = true)
     @Mapping(target = "testAnswers", ignore = true)
     TestResultDetailsDTO fromTestResultToDetailsDTO(TestResult testResult);
+
+    @Mapping(source = "test.id", target = "testId")
+    @Mapping(source = "test.name", target = "testName")
+    @Mapping(target = "interpretation", ignore = true)// Будет вычисляться в сервисе
+    AnonymousTestResultDTO fromTestResultToAnonymousTestResultDTO(TestResult testResult);
 }

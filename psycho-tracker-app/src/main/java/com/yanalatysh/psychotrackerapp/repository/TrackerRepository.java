@@ -22,6 +22,18 @@ public interface TrackerRepository extends JpaRepository<Tracker, Long> {
             Pageable pageable
     );
 
+    List<Tracker> findByUserIdAndEntryDatetimeGreaterThanEqualOrderByEntryDatetimeDesc(
+            Long userId,
+            LocalDateTime start,
+            Pageable pageable
+    );
+
+    List<Tracker> findByUserIdAndEntryDatetimeLessThanEqualOrderByEntryDatetimeDesc(
+            Long userId,
+            LocalDateTime end,
+            Pageable pageable
+    );
+
     long countByUserIdAndEntryDatetimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
 
     // Средние значения за период

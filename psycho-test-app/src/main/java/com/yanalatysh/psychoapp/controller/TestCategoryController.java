@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@PreAuthorize("hasAnyRole('ADMIN', 'SPECIALIST', 'USER')")
 @RequestMapping("/v1/api/tests/category")
 @Data
 public class TestCategoryController {
@@ -22,12 +21,14 @@ public class TestCategoryController {
     private final TestCategoryService categoryService;
 
     @GetMapping("/")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SPECIALIST', 'USER')")
     public ResponseEntity<List<TestCategoryDTO>> getAllCategories() {
         var categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
 
     @PostMapping("/")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<TestCategoryDTO> createCategory(
             @Valid @RequestBody CreateCategoryDTO request
     ) {
@@ -36,6 +37,7 @@ public class TestCategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<List<TestCategoryDTO>> DeleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok().build();

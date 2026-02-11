@@ -1,5 +1,6 @@
 package com.yanalatysh.psychoapp.controller;
 
+import com.yanalatysh.psychoapp.dto.AnonymousTestResultDTO;
 import com.yanalatysh.psychoapp.dto.TestResultDTO;
 import com.yanalatysh.psychoapp.dto.TestResultDetailsDTO;
 import com.yanalatysh.psychoapp.service.TestResultService;
@@ -21,31 +22,46 @@ public class TestResultController {
 
     private final TestResultService testResultService;
 
-    @GetMapping("/by-user")
-    @PreAuthorize("hasAnyRole('SPECIALIST', 'USER')")
-    public ResponseEntity<List<TestResultDTO>> getResultsByUserId(@CurrentUserId Long userId) {
-        var results = testResultService.getResultsByUserId(userId);
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<TestResultDTO>> getMyTestResults(@CurrentUserId Long userId) {
+        var results = testResultService.getMyTestResults(userId);
         return ResponseEntity.ok(results);
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SPECIALIST', 'USER')")
-    public ResponseEntity<TestResultDTO> getResultById(@PathVariable Long id) {
-        var result = testResultService.getResultById(id);
-        return ResponseEntity.ok(result);
+    @GetMapping("/users/{userId}")
+    @PreAuthorize("hasRole('SPECIALIST')")
+    public ResponseEntity<List<TestResultDTO>> getResultsByUserId(
+            @PathVariable Long userId,
+            @CurrentUserId Long currentUserId) {
+        var results = testResultService.getResultsByUserId(userId, currentUserId);
+        return ResponseEntity.ok(results);
     }
+
+//    @GetMapping("/{id}")
+//    @PreAuthorize("hasRole('USER')")
+//    public ResponseEntity<TestResultDTO> getResultById(
+//            @PathVariable Long id,
+//            @CurrentUserId Long currentUserId) {
+//        var result = testResultService.getResultById(id, currentUserId);
+//        return ResponseEntity.ok(result);
+//    }
 
     @GetMapping("/by-test/{testId}")
     @PreAuthorize("hasRole('SPECIALIST')")
-    public ResponseEntity<List<TestResultDTO>> getResultsByTestId(@PathVariable Long testId) {
+    public ResponseEntity<List<AnonymousTestResultDTO>> getResultsByTestId(@PathVariable Long testId) {
         var results = testResultService.getResultsByTestId(testId);
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/details/{id}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<TestResultDetailsDTO> getResultDetailsById(@PathVariable Long id) {
-        var result = testResultService.getResultDetailsById(id);
+    @PreAuthorize("hasAnyRole('SPECIALIST', 'USER')")
+    //TODO: возможно добавить роль 'SPECIALIST', чтобы специалист тоже мог просматривать результат теста,
+    // если пациент разрешил
+    public ResponseEntity<TestResultDetailsDTO> getResultDetailsById(
+            @PathVariable Long id,
+            @CurrentUserId Long currentUserId) {
+        var result = testResultService.getResultDetailsById(id, currentUserId);
         return ResponseEntity.ok(result);
     }
 }

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
-public class TrackerEntryResponseDTO {
+public class TrackerEntryDetailResponseDTO {
     private Long id;
     private LocalDateTime entryDatetime;
     private String thoughts;

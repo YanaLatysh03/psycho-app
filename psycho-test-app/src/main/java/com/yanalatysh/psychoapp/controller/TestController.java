@@ -43,7 +43,7 @@ public class TestController {
     }
 
     @PostMapping("/{id}/submit")
-    @PreAuthorize("hasRole('SPECIALIST')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TestResultDTO> submitTest(
             @PathVariable Long id,
             @Valid @RequestBody SubmitTestRq request,

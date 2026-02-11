@@ -1,8 +1,9 @@
 package com.yanalatysh.psychotrackerapp.mapper;
 
 
+import com.yanalatysh.psychotrackerapp.dto.TrackerEntryDetailResponseDTO;
 import com.yanalatysh.psychotrackerapp.dto.TrackerEntryRequestDTO;
-import com.yanalatysh.psychotrackerapp.dto.TrackerEntryResponseDTO;
+import com.yanalatysh.psychotrackerapp.dto.TrackerEntrySummaryResponseDTO;
 import com.yanalatysh.psychotrackerapp.entity.Tracker;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,5 +15,8 @@ public interface TrackerMapper {
     Tracker fromRequestDtoToTracker(TrackerEntryRequestDTO request);
 
     @Mapping(source = "user.id", target = "userId")
-    TrackerEntryResponseDTO fromTrackerToResponseDto(Tracker tracker);
+    TrackerEntryDetailResponseDTO fromTrackerToDetailsResponseDto(Tracker tracker);
+
+    @Mapping(source = "user.id", target = "userId")
+    TrackerEntrySummaryResponseDTO fromTrackerToSummaryResponseDto(Tracker tracker);
 }

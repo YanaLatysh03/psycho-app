@@ -36,6 +36,11 @@ public class Profile {
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
+    @OneToOne(mappedBy = "profile",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private UserMetaData userMetaData;
+
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
