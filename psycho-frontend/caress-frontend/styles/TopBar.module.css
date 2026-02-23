@@ -5,10 +5,10 @@
 	justify-content: space-between;
 	padding: 10px;
 	font-family: 'Poppins', sans-serif;
-	height: 70px;
+	/*height: 70px;*/
 	align-items: center;
   }
-  
+
   .topbar a {
 	color: black;
 	margin-right: 10px;
@@ -16,19 +16,19 @@
 	font-weight: 430;
 	font-size: 19px;
   }
-  
-  
+
+
   .topbar img {
 	border-radius: 50%;
 	height: 45px;
 	width: 45px;
 	object-fit: cover;
   }
-  
+
   .topbar span {
 	margin-left: 5px;
   }
-  
+
 .left {
 	align-items: center;
 	display: flex;
@@ -43,7 +43,7 @@
 	  width: 100%;
 	}
   }
-  
+
   .greeting {
 	display: inline-block;
 	overflow: hidden;
@@ -51,7 +51,7 @@
 	animation: typing 1.5s steps(5, end) forwards;
 	animation-timing-function: linear; /* Add this line to adjust the timing function */
   }
-  
+
   /* Modify the animation steps */
   @media screen and (min-width: 768px) {
 	.greeting {

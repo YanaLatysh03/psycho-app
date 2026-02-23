@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TrackerRepository extends JpaRepository<Tracker, Long> {
 
@@ -32,6 +33,12 @@ public interface TrackerRepository extends JpaRepository<Tracker, Long> {
             Long userId,
             LocalDateTime end,
             Pageable pageable
+    );
+
+    Optional<Tracker> findFirstByUserIdAndEntryDatetimeBetweenOrderByEntryDatetimeDesc(
+            Long userId,
+            LocalDateTime startOfDay,
+            LocalDateTime endOfDay
     );
 
     long countByUserIdAndEntryDatetimeBetween(Long userId, LocalDateTime start, LocalDateTime end);

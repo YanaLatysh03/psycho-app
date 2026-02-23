@@ -19,6 +19,7 @@ public class Profile {
     private String name;
 
     @Column(name = "gender")
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @Column(name = "phone")

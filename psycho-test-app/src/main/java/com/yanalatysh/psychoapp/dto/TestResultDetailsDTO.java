@@ -10,6 +10,7 @@ public class TestResultDetailsDTO {
     private Long id;
     private LocalDateTime testDatetime;
     private int score;
+    private int maxScore;
     private Long testId;
     private String testName;
     private Long userId;

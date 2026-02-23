@@ -5,6 +5,8 @@ import com.yanalatysh.psychoapp.dto.TestCategoryDTO;
 import com.yanalatysh.psychoapp.dto.TestDTO;
 import com.yanalatysh.psychoapp.rq.SubmitTestRq;
 import com.yanalatysh.psychoapp.service.TestCategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ public class TestCategoryController {
 
     @GetMapping("/")
     @PreAuthorize("hasAnyRole('ADMIN', 'SPECIALIST', 'USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<List<TestCategoryDTO>> getAllCategories() {
         var categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
@@ -29,6 +32,7 @@ public class TestCategoryController {
 
     @PostMapping("/")
     @PreAuthorize("hasAnyRole('ADMIN')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<TestCategoryDTO> createCategory(
             @Valid @RequestBody CreateCategoryDTO request
     ) {
@@ -38,6 +42,7 @@ public class TestCategoryController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<List<TestCategoryDTO>> DeleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok().build();

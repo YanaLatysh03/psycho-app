@@ -12,6 +12,8 @@ public class UserMetaDataResponseDTO {
     private String therapyGoals;
     private String currentSituation;
 
+    private Long currentTherapistId;
+
     // Срочность и доступность
     private Boolean inCrisis;
 

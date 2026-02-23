@@ -1,159 +1,195 @@
+// psycho-frontend/caress-frontend/pages/quizes.tsx
 import Bottombar from '@/components/bottombar';
 import Head from 'next/head';
 import React, { useEffect, useState } from 'react';
 import styles from '@/styles/main.module.css'
 import { useRouter } from 'next/router';
-import firebase from '@/firebase/clientApp';
-import auth from '@/firebase/detectSignin';
+import { testApi, Test, TestCategory } from '@/services/testApi';
+import TopBar from "@/components/topbar";
+import {authApi} from "@/services/authApi";
 
 export default function Quiz() {
-
-	//auth.isLoggedIn();
-
 	const router = useRouter();
-	const [user, setUser] = useState<firebase.User | null>(null);
-
-	const now = new Date();
-	const [latestResult, setLatestResult] = useState<null | any>(null);
-	const [daysDiff, setDaysDiff] = useState<number | null>(null);
+	const [tests, setTests] = useState<Test[]>([]);
+	const [categories, setCategories] = useState<TestCategory[]>([]);
+	const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [userRole, setUserRole] = useState<string | null>(null);
 
-
+	// Получение роли пользователя
 	useEffect(() => {
-		async function fetchLatestResult() {
-			const getUser = async () => {
-				const currentUser = await auth.isLoggedIn();
-				console.log('User object:', currentUser);
-				setUser(currentUser);
-				return currentUser;
-			  };
-			//  getUser();
-			const User:any = await getUser();
-			if (User && !latestResult) {
-				const latestResultRef = firebase.firestore().collection('users').doc(User.uid).collection('caress-results')
-				  .orderBy('date', 'desc')
-				  .limit(1);
-				const snapshot = await latestResultRef.get();
-				if (!snapshot.empty) {
-				  const latestResultData = snapshot.docs[0].data();
-				  const latestResultDate = new Date(latestResultData.date);
-				  const diff = Math.floor((now.getTime() - latestResultDate.getTime()) / (1000 * 3600 * 24));
-				  setLatestResult(latestResultData);
-				  setDaysDiff(diff);
-				} else {
-				  setLatestResult(null);
-				  setDaysDiff(null);
-				}
-			} else {
-				//fetchLatestResult();
-			}
-			setIsLoading(false);
-		}
-		fetchLatestResult();
-	}, [user, now]);
+		const role = authApi.getUserRole();
+		setUserRole(role);
+	}, []);
 
-	const [OlatestResult, setOLatestResult] = useState<null | any>(null);
-
-
+	// Загрузка категорий
 	useEffect(() => {
-		async function OfetchLatestResult() {
-			const getUser = async () => {
-				const currentUser = await auth.isLoggedIn();
-				console.log('User object:', currentUser);
-				setUser(currentUser);
-				return currentUser;
-			  };
-			//  getUser();
-			const user:any = await getUser();
-			//const user = await fetchUser();
-			if (user && !OlatestResult) {
-				const OlatestResultRef = firebase.firestore().collection('users').doc(user.uid).collection('ocean-results')
-				  .orderBy('date', 'desc')
-				  .limit(1);
-				const snapshot = await OlatestResultRef.get();
-				if (!snapshot.empty) {
-				  const OlatestResultData = 1;
-				  setOLatestResult(OlatestResultData);
-				} else {
-				  setLatestResult(null);
-				}
-			} else {
-				//OfetchLatestResult();
+		async function fetchCategories() {
+			try {
+				const token = localStorage.getItem('jwt_token');
+				const categoriesData = await testApi.getAllCategories(token);
+				setCategories(categoriesData);
+			} catch (err) {
+				console.error('Error loading categories:', err);
 			}
-			setIsLoading(false);
 		}
-		OfetchLatestResult();
-	}, [now]);
+		fetchCategories();
+	}, []);
+
+	// Загрузка тестов (при изменении категории)
+	useEffect(() => {
+		async function fetchTests() {
+			try {
+				setIsLoading(true);
+				setError(null);
+
+				const token = localStorage.getItem('jwt_token');
+
+				let testsData: Test[];
+				if (selectedCategoryId === null) {
+					// Загружаем все тесты
+					testsData = await testApi.getAllTests(token);
+				} else {
+					// Загружаем тесты конкретной категории
+					testsData = await testApi.getTestsByCategory(selectedCategoryId, token);
+				}
+
+				setTests(testsData);
+			} catch (err) {
+				console.error('Error loading tests:', err);
+				setError('Не удалось загрузить тесты');
+			} finally {
+				setIsLoading(false);
+			}
+		}
+
+		fetchTests();
+	}, [selectedCategoryId]); // Перезагружаем тесты при смене категории
 
 	if (isLoading) {
-		return <div>Loading...</div>;
+		return (
+			<div className={styles.content}>
+				<div>Загрузка тестов...</div>
+			</div>
+		);
 	}
 
+	if (error) {
+		return (
+			<div className={styles.content}>
+				<div style={{ color: 'red' }}>{error}</div>
+				<button onClick={() => window.location.reload()}>
+					Попробовать снова
+				</button>
+			</div>
+		);
+	}
 
 	return (
-		<div className={styles.content}>
-		<Head>
-			<title>Quizes</title>
-		</Head>
-			<div className={styles.quiz_title}>
-				Different Health Models
-			</div>
-
-			<div className={styles.container}>
-				<div className={styles.title} >
-					Caress Model (Weekly Mental Health Assesment)
+		<>
+			<Head>
+				<title>Психологические тесты</title>
+			</Head>
+			<TopBar />
+			<div className={styles.content}>
+				<div className={styles.quiz_title}>
+					📋 Психологические тесты
 				</div>
-				<div>
-				CARESS model is made by us to be used in therapy to assess and address a client's mental and emotional state. <a href="" className={styles.a}>Learn more about it.</a> The acronym stands for:
 
-					<div className={styles.scores}>
-      					<ul className={styles.q_my_list}>
-      					  <li className={styles.q_li}>Coping Strategies and Self-Care</li>
-      					  <li className={styles.q_li}>Appetite and Eating Habits</li>
-      					  <li className={styles.q_li}>Relationships and Social Support</li>
-      					  <li className={styles.q_li}>Energy and Motivation</li>
-      					  <li className={styles.q_li}>Sleep</li>
-      					  <li className={styles.q_li}>Sentiment and Emotional State</li>
-      					</ul>
-    				</div>
+			{/* Фильтр по категориям */}
+			{categories.length > 0 && (
+				<div style={{
+					display: 'flex',
+					gap: '10px',
+					flexWrap: 'wrap',
+					justifyContent: 'center',
+					marginBottom: '20px',
+					padding: '0 20px'
+				}}>
+					{/* Кнопка "Все тесты" */}
+					<button
+						onClick={() => setSelectedCategoryId(null)}
+						style={{
+							padding: '8px 16px',
+							borderRadius: '20px',
+							border: selectedCategoryId === null ? '2px solid #7C3AED' : '1px solid #ccc',
+							backgroundColor: selectedCategoryId === null ? '#7C3AED' : 'white',
+							color: selectedCategoryId === null ? 'white' : '#333',
+							cursor: 'pointer',
+							fontSize: '14px',
+							fontWeight: selectedCategoryId === null ? 'bold' : 'normal',
+							transition: 'all 0.3s'
+						}}
+					>
+						Все тесты
+					</button>
+
+					{/* Кнопки категорий */}
+					{categories.map((category) => (
+						<button
+							key={category.id}
+							onClick={() => setSelectedCategoryId(category.id)}
+							style={{
+								padding: '8px 16px',
+								borderRadius: '20px',
+								border: selectedCategoryId === category.id ? '2px solid #7C3AED' : '1px solid #ccc',
+								backgroundColor: selectedCategoryId === category.id ? '#7C3AED' : 'white',
+								color: selectedCategoryId === category.id ? 'white' : '#333',
+								cursor: 'pointer',
+								fontSize: '14px',
+								fontWeight: selectedCategoryId === category.id ? 'bold' : 'normal',
+								transition: 'all 0.3s'
+							}}
+						>
+							{category.name}
+						</button>
+					))}
 				</div>
-				<div>
-          {latestResult && daysDiff !== null && daysDiff < 7 ? (
-            <button className={styles.btn}>Wait {7 - daysDiff} days to take the quiz again</button>
-          ) : (
-            <button className={styles.btn} onClick={ () => router.push('/caress-quiz') }>Take Quiz</button>
 			)}
-			</div>
-			</div>
 
-			<div className={styles.container}>
-				<div className={styles.title} >
-					Ocean Model (Personality Test)
+			{/* Список тестов */}
+			{tests.length === 0 ? (
+				<div className={styles.container}>
+					<p>
+						{selectedCategoryId === null
+							? 'Тесты пока не добавлены'
+							: 'В этой категории пока нет тестов'}
+					</p>
 				</div>
-				<div>
-				The OCEAN model is widely used in psychology research, career counseling, and personal development. It can help individuals gain a better understanding of themselves and others, and identify areas for personal growth and improvement. <a href="" className={styles.a}>Learn more about it.</a> The acronym stands for:
-
-					<div className={styles.scores}>
-      					<ul className={styles.q_my_list}>
-      					  <li className={styles.q_li}>Openness</li>
-      					  <li className={styles.q_li}>Conscientiousness</li>
-      					  <li className={styles.q_li}>Extraversion</li>
-      					  <li className={styles.q_li}>Agreeableness</li>
-      					  <li className={styles.q_li}>Neuroticism</li>
-      					</ul>
-    				</div>
-				</div>
-				{OlatestResult !== null ? (
-            <button className={styles.btn} onClick={ () => router.push('/ocean-quiz') }>Pay 5$ to retake the quiz</button>
-          ) : (
-            <button className={styles.btn} onClick={ () => router.push('/ocean-quiz') }>Take Quiz</button>
+			) : (
+				tests.map((test) => (
+					<div key={test.id} className={styles.container}>
+						<div className={styles.title}>{test.name}</div>
+						<div>{test.description}</div>
+						<div style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
+							Категория: {test.categoryName}
+						</div>
+						{/* Разные кнопки для USER и SPECIALIST */}
+						{userRole === 'SPECIALIST' ? (
+							<button
+								className={styles.btn}
+								onClick={() => router.push(`/test-statistics/${test.id}`)}
+								style={{
+									background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+								}}
+							>
+								📊 Статистика по тесту
+							</button>
+						) : (
+							<button
+								className={styles.btn}
+								onClick={() => router.push(`/test/${test.id}`)}
+							>
+								Пройти тест
+							</button>
+						)}
+					</div>
+				))
 			)}
-				</div>
 
-
-
-		<Bottombar/>
-
+			<Bottombar/>
 		</div>
-	)
+		</>
+	);
 }

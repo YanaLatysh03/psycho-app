@@ -6,6 +6,8 @@ import com.yanalatysh.psychoapp.dto.TestResultDTO;
 import com.yanalatysh.psychoapp.rq.SubmitTestRq;
 import com.yanalatysh.psychoapp.service.TestService;
 import com.yanalatysh.psychoapp.util.CurrentUserId;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ public class TestController {
 
     @GetMapping("/")
     @PreAuthorize("hasAnyRole('ADMIN', 'SPECIALIST', 'USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<List<TestDTO>> getAllTests() {
         List<TestDTO> tests = testService.getAllTests();
         return ResponseEntity.ok(tests);
@@ -30,6 +33,7 @@ public class TestController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SPECIALIST', 'USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<TestDetailsDTO> getTestById(@PathVariable Long id) {
         var test = testService.getTestById(id);
         return ResponseEntity.ok(test);
@@ -37,13 +41,23 @@ public class TestController {
 
     @GetMapping("/category/{categoryId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SPECIALIST', 'USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<List<TestDTO>> getTestsByCategory(@PathVariable Long categoryId) {
         var tests = testService.getTestsByCategoryId(categoryId);
         return ResponseEntity.ok(tests);
     }
 
+    @GetMapping("/suggested")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SPECIALIST', 'USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
+    public ResponseEntity<List<TestDTO>> getSuggestedTestsByUser(@CurrentUserId Long userId) {
+        var tests = testService.getSuggestedTestsByUser(userId);
+        return ResponseEntity.ok(tests);
+    }
+
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<TestResultDTO> submitTest(
             @PathVariable Long id,
             @Valid @RequestBody SubmitTestRq request,

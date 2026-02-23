@@ -77,7 +77,7 @@ public class SpecialistMetaData {
 
     // Условия работы
     @Column(name = "session_price")
-    private Integer sessionPrice; // Стоимость сессии
+    private Double sessionPrice; // Стоимость сессии
 
     @Column(name = "session_duration")
     private Integer sessionDuration; // Длительность сессии в минутах (обычно 50-60)
@@ -85,9 +85,13 @@ public class SpecialistMetaData {
     @Column(name = "provides_free_consultation")
     private Boolean providesFreeConsultation; // Предоставляет бесплатную первичную консультацию
 
-    // Рейтинг и отзывы
+    // Рейтинг
     @Column(name = "rating")
     private Double rating; // Средний рейтинг (0.0 - 5.0)
+
+    // Количество человек, которые поставили оценку специалисту
+    @Column(name = "rating_count")
+    private Integer ratingCount;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

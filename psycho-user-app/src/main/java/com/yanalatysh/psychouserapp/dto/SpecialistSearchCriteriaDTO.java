@@ -50,6 +50,6 @@ public class SpecialistSearchCriteriaDTO {
     // Параметры пагинации и сортировки
     private Integer page = 0;
     private Integer size = 10;
-    private String sortBy = "rating";  // поле для сортировки
+    private String sortBy = "createdAt";  // поле для сортировки
     private String sortDirection = "DESC"; // ASC или DESC
 }

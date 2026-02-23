@@ -33,4 +33,11 @@ public class User {
             orphanRemoval = true
     )
     private List<Tracker> trackers;
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<GeneralTrackerState> generalTrackerStates;
 }

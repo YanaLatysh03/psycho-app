@@ -1,8 +1,6 @@
 package com.yanalatysh.psychotrackerapp.controller;
 
-import com.yanalatysh.psychotrackerapp.dto.TrackerEntryDetailResponseDTO;
-import com.yanalatysh.psychotrackerapp.dto.TrackerEntryRequestDTO;
-import com.yanalatysh.psychotrackerapp.dto.TrackerEntrySummaryResponseDTO;
+import com.yanalatysh.psychotrackerapp.dto.*;
 import com.yanalatysh.psychotrackerapp.service.TrackerService;
 import com.yanalatysh.psychotrackerapp.util.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +34,16 @@ public class TrackerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/general-state")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
+    public ResponseEntity<GeneralStateResponseDTO> createGeneralState(
+            @CurrentUserId Long userId,
+            @Valid @RequestBody GeneralStateRequestDTO request) {
+        var response = trackerService.createGeneralState(request, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
     @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
@@ -47,6 +55,26 @@ public class TrackerController {
             @RequestParam(defaultValue = "10") int size) {
         var entries = trackerService.getMyEntriesByDateRange(userId, start, end, page, size);
         return ResponseEntity.ok(entries);
+    }
+
+    @GetMapping("/me/today/latest")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            security = @SecurityRequirement(name = "BearerAuthentication"),
+            summary = "Получить последнюю запись за сегодня"
+    )
+    public ResponseEntity<TrackerEntrySummaryResponseDTO> getTodayLatestEntry(@CurrentUserId Long userId) {
+        return trackerService.getTodayLatestEntry(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/general-states")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
+    public ResponseEntity<List<GeneralStateResponseDTO>> getRecentGeneralStates(@CurrentUserId Long userId) {
+        var generalStates = trackerService.getRecentGeneralStates(userId);
+        return ResponseEntity.ok(generalStates);
     }
 
     @GetMapping("/users/{userId}")

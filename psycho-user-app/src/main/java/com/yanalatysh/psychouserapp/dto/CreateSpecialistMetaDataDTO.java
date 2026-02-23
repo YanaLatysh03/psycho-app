@@ -24,7 +24,7 @@ public class CreateSpecialistMetaDataDTO {
     private Set<TargetAudience> targetAudiences;
 
     // Условия работы
-    private Integer sessionPrice;
+    private Double sessionPrice;
     private Integer sessionDuration;
     private Boolean providesFreeConsultation;
 }

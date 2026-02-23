@@ -12,5 +12,14 @@ public interface ProfileMapper {
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "specialistMetaData", target = "specialistMetaData")
     @Mapping(source = "userMetaData", target = "userMetaData")
+    @Mapping(target = "name", expression = "java(capitalizeWords(profile.getName()))")
     ProfileResponseDTO fromProfileToProfileResponseDTO(Profile profile);
+
+    default String capitalizeWords(String input) {
+        if (input == null || input.isBlank()) return input;
+        return java.util.Arrays.stream(input.trim().split("\\s+"))
+                .map(word -> word.isEmpty() ? word :
+                        Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase())
+                .collect(java.util.stream.Collectors.joining(" "));
+    }
 }

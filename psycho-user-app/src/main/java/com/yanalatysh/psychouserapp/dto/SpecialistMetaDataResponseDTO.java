@@ -24,10 +24,12 @@ public class SpecialistMetaDataResponseDTO {
     private Set<TargetAudience> targetAudiences;
 
     // Условия работы
-    private Integer sessionPrice;
+    private Double sessionPrice;
     private Integer sessionDuration;
     private Boolean providesFreeConsultation;
 
     // Рейтинг
     private Double rating;
+    // Количество проголосовавших
+    private Integer ratingCount;
 }

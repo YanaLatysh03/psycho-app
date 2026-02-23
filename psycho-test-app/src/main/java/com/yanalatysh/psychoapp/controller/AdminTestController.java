@@ -3,6 +3,8 @@ package com.yanalatysh.psychoapp.controller;
 import com.yanalatysh.psychoapp.dto.CreateTestRequestDTO;
 import com.yanalatysh.psychoapp.dto.TestDTO;
 import com.yanalatysh.psychoapp.service.AdminTestService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@PreAuthorize("hasRole('ADMIN')")
+//@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/v1/api/tests/admin")
 @Data
 public class AdminTestController {
@@ -18,6 +20,7 @@ public class AdminTestController {
     private final AdminTestService adminTestService;
 
     @PostMapping("/")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<TestDTO> createTest(
             @Valid @RequestBody CreateTestRequestDTO request
     ) {
@@ -26,6 +29,7 @@ public class AdminTestController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(security = @SecurityRequirement(name = "BearerAuthentication"))
     public ResponseEntity<Void> deleteTest(@PathVariable Long id) {
         adminTestService.deleteTest(id);
         return ResponseEntity.ok().build();

@@ -91,7 +91,7 @@ public class TestResultService {
 
         if (testResult.getUser().getId() == currentUserId
                 || (testResult.getUser().getProfile().getUserMetaData() != null
-                && testResult.getUser().getProfile().getUserMetaData().getId() == currentUserId)) {
+                && testResult.getUser().getProfile().getUserMetaData().getCurrentTherapistId() == currentUserId)) {
             var detailsResultDto = testResultMapper.fromTestResultToDetailsDTO(testResult);
 
             detailsResultDto.setInterpretation(ScoreInterpretationUtil.interpretScore(detailsResultDto.getScore(),

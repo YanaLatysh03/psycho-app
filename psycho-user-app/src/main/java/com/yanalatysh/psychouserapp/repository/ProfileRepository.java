@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
@@ -34,10 +36,11 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
      * Поиск специалистов для пользователей
      */
     @Query("""
-        SELECT DISTINCT p FROM Profile p
+        SELECT p FROM Profile p
         LEFT JOIN p.specialistMetaData sm
         JOIN p.user u
         WHERE u.role = 'SPECIALIST'
+        and sm is not null
         AND p.isDeleted = false
         AND (:name IS NULL OR p.name LIKE :name)
         AND (:gender IS NULL OR p.gender = :gender)
@@ -129,4 +132,14 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
             @Param("problemAreas") Set<ProblemArea> problemAreas,
             Pageable pageable
     );
+
+    @Query("""
+            select p from Profile p
+            join p.userMetaData um
+            join p.user u
+            where um.currentTherapistId = :userId
+            and p.isDeleted = false
+            and u.role = 'USER'
+            """)
+    List<Profile> findPatientsBySpecialistId(@Param("userId") Long userId);
 }

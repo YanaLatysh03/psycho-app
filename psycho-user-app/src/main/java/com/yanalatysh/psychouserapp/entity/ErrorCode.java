@@ -1,0 +1,11 @@
+package com.yanalatysh.psychouserapp.entity;
+
+public enum ErrorCode {
+    E_SPECIALIST_PROFILE_NOT_FOUND,
+    E_USER_PROFILE_NOT_FOUND,
+    E_HAVE_ACTIVE_REQUEST,
+    E_HAVE_ACTIVE_SPECIALIST,
+    E_USER_IS_NOT_SPECIALIST,
+    E_THERAPY_REQUEST_NOT_FOUND,
+    E_NOT_HAVE_ACTIVE_SPECIALIST
+}

@@ -4,6 +4,7 @@ import com.yanalatysh.psychotrackerapp.entity.Emotion;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.Set;

@@ -1,10 +1,9 @@
 package com.yanalatysh.psychotrackerapp.service;
 
-import com.yanalatysh.psychotrackerapp.dto.TrackerEntryDetailResponseDTO;
-import com.yanalatysh.psychotrackerapp.dto.TrackerEntryRequestDTO;
-import com.yanalatysh.psychotrackerapp.dto.TrackerEntrySummaryResponseDTO;
+import com.yanalatysh.psychotrackerapp.dto.*;
 import com.yanalatysh.psychotrackerapp.entity.Tracker;
 import com.yanalatysh.psychotrackerapp.mapper.TrackerMapper;
+import com.yanalatysh.psychotrackerapp.repository.GeneralTrackerStateRepository;
 import com.yanalatysh.psychotrackerapp.repository.ProfileRepository;
 import com.yanalatysh.psychotrackerapp.repository.TrackerRepository;
 import com.yanalatysh.psychotrackerapp.repository.UserRepository;
@@ -13,9 +12,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +28,7 @@ public class TrackerService {
     private final TrackerMapper trackerMapper;
     private final TrackerRepository trackerRepository;
     private final ProfileRepository profileRepository;
+    private final GeneralTrackerStateRepository generalTrackerStateRepository;
 
     public TrackerEntryDetailResponseDTO createEntry(Long userId, TrackerEntryRequestDTO request) {
         var user = userRepository.findById(userId)
@@ -33,9 +36,21 @@ public class TrackerService {
 
         var tracker = trackerMapper.fromRequestDtoToTracker(request);
         tracker.setUser(user);
+        tracker.setCreatedAt(LocalDateTime.now());
 
         var savedTracker = trackerRepository.save(tracker);
         return trackerMapper.fromTrackerToDetailsResponseDto(savedTracker);
+    }
+
+    public GeneralStateResponseDTO createGeneralState(GeneralStateRequestDTO request, Long currentUserId) {
+        var user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден " + currentUserId));
+
+        var generalState = trackerMapper.fromRequestDtoToGeneralState(request);
+        generalState.setUser(user);
+        generalState.setCreatedAt(LocalDateTime.now());
+
+        return trackerMapper.fromGeneralStateToResponse(generalTrackerStateRepository.save(generalState));
     }
 
     public List<TrackerEntrySummaryResponseDTO> getMyEntriesByDateRange(
@@ -50,6 +65,13 @@ public class TrackerService {
 
         return entries.stream()
                 .map(trackerMapper::fromTrackerToSummaryResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<GeneralStateResponseDTO> getRecentGeneralStates(Long currentUserId) {
+        var generalStates = generalTrackerStateRepository.findTop5ByUserIdOrderByCreatedAtDesc(currentUserId);
+        return generalStates.stream()
+                .map(trackerMapper::fromGeneralStateToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -68,7 +90,7 @@ public class TrackerService {
                 && userProfile.getUserMetaData().getCurrentTherapistId() == currentUserId) {
 
             var pageable = PageRequest.of(page, size);
-            var entries = findTrackerEntriesByDateRange(start, end, currentUserId, pageable);
+            var entries = findTrackerEntriesByDateRange(start, end, userId, pageable);
 
             return entries.stream()
                     .map(trackerMapper::fromTrackerToDetailsResponseDto)
@@ -79,7 +101,6 @@ public class TrackerService {
         }
     }
 
-
     public TrackerEntryDetailResponseDTO getEntryById(Long userId, Long entryId) {
         var tracker = trackerRepository.findById(entryId)
                 .orElseThrow(() -> new RuntimeException("Запись не найдена " + entryId));
@@ -89,6 +110,14 @@ public class TrackerService {
         }
 
         return trackerMapper.fromTrackerToDetailsResponseDto(tracker);
+    }
+
+    public Optional<TrackerEntrySummaryResponseDTO> getTodayLatestEntry(Long userId) {
+        var startOfDay = LocalDate.now().atStartOfDay();
+        var endOfDay = LocalDate.now().atTime(23, 59, 59, 999_999_999);
+        return trackerRepository.findFirstByUserIdAndEntryDatetimeBetweenOrderByEntryDatetimeDesc(
+                userId, startOfDay, endOfDay)
+                .map(trackerMapper::fromTrackerToSummaryResponseDto);
     }
 
     public TrackerEntryDetailResponseDTO updateEntry(Long userId, Long entryId, TrackerEntryRequestDTO request) {

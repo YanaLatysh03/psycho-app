@@ -18,6 +18,7 @@ public interface TestResultMapper {
 
     @Mapping(source = "test.id", target = "testId")
     @Mapping(source = "test.name", target = "testName")
+    @Mapping(source = "test.maxScore", target = "maxScore")
     @Mapping(source = "user.id", target = "userId")
     @Mapping(target = "interpretation", ignore = true)
     @Mapping(target = "testAnswers", ignore = true)

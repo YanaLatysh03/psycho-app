@@ -16,8 +16,8 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-//                .components(new Components().addSecuritySchemes
-//                        ("BearerAuthentication", createAPIKeyScheme()))
+                .components(new Components().addSecuritySchemes
+                        ("BearerAuthentication", createAPIKeyScheme()))
                 .info(new Info().title("Psycho App API")
                         .description("API для психологических онлайн-консультаций и тестов")
                         .version("1.0"));

@@ -4,10 +4,9 @@ import styles from '@/styles/chats.module.css'
 import { LucideArrowLeft, LucideSearch, LucideUser } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import firebase from "@/firebase/clientApp";
 import 'firebase/firestore';
-import auth from "@/firebase/detectSignin";
 import { Timestamp } from "firebase/firestore";
+import {authApi} from "@/services/authApi";
 
 export default function Chats() {
 
@@ -35,7 +34,7 @@ export default function Chats() {
 
 	//let now = new Date();
 	//let time = now.toTimeString().split(' ')[0];
-	
+
 	const router = useRouter();
 
 	const onClickFunction = () => {
@@ -46,15 +45,12 @@ export default function Chats() {
 		router.replace('/home');
 	}
 
-	const firestore = firebase.firestore();
-
 	const [user, setUser] = useState<User | null>();
-	const [chats, setChats] = useState([]);
 	const [msgs, setMsgs] = useState<Msg[] | null>([]);
 
 	useEffect(() => {
 		const authenticate = async () => {
-		const currentUser = await auth.isLoggedIn();
+		const currentUser = await authApi.getCurrentUser();
 		console.log('User object:', currentUser);
 		setUser(currentUser);
     return currentUser;
@@ -73,15 +69,15 @@ querySnapshot.forEach(doc => {
 			// Update state with the array of messages
 			setMsgs(msgArray);
 			console.log('msgs:', msgs);
-		  
+
 		  };
-		  
+
 		fetchChats();
   }, [user]);
 
-  
-	
-  
+
+
+
 
 	return (
 		<>
@@ -153,12 +149,12 @@ querySnapshot.forEach(doc => {
 						therapistUid: uid,
 						therapistName: Name,
 					  therapistPhotoUrl: url
-					  
+
 					}
 				  });
-			
+
 			  }
-			
+
 			return (
 				<div>
 			<div className={styles.chat} onClick={goToChat}>

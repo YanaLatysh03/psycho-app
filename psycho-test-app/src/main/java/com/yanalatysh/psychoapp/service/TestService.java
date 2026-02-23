@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,15 @@ public class TestService {
 
          testDto.setTestQuestions(testQuestionDTOs);
          return testDto;
+    }
+
+    public List<TestDTO> getSuggestedTestsByUser(Long userId) {
+        var dateForSuggestedTest = LocalDate.now().minusDays(14);
+
+        return testRepository.getSuggestedTestsByUser(userId, dateForSuggestedTest)
+                .stream()
+                .map(testMapper::fromTestToTestDto)
+                .collect(Collectors.toList());
     }
 
     public List<TestDTO> getTestsByCategoryId(Long categoryId) {

@@ -11,11 +11,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 @Data
@@ -25,11 +27,23 @@ public class ProfileService {
     private final ProfileMapper profileMapper;
     private final ProfileRepository profileRepository;
 
-    public ProfileResponseDTO getProfile(Long userId) {
-        var profile = profileRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User with profile not found with id: " + userId));
+    public Optional<ProfileResponseDTO> getProfile(Long userId) {
+        return profileRepository.findById(userId)
+                .map(profileMapper::fromProfileToProfileResponseDTO);
+    }
 
-        return profileMapper.fromProfileToProfileResponseDTO(profile);
+    public ProfileResponseDTO getUserProfileByUserId(Long currentUserId, Long userId) {
+        var userProfile = profileRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User profile not found"));
+
+        var currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("User profile not found"));
+
+        if (userProfile.getUser().getRole() == currentUser.getRole()) {
+            throw new IllegalStateException("Can't read profile of the same role");
+        }
+
+        return profileMapper.fromProfileToProfileResponseDTO(userProfile);
     }
 
     public ProfileResponseDTO createProfile(Long userId, CreateProfileRequestDTO request) {
@@ -241,6 +255,27 @@ public class ProfileService {
         return profiles.map(
                         profileMapper::fromProfileToProfileResponseDTO)
                 .stream().toList();
+    }
+
+    @Transactional
+    public void endTherapyForUser(Long userId) {
+        Profile userProfile = profileRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User profile not found"));
+
+        if (userProfile.getUserMetaData() == null) {
+            throw new IllegalStateException("User has no metadata");
+        }
+
+        // Проверка: есть ли текущий специалист
+        if (userProfile.getUserMetaData().getCurrentTherapistId() == null) {
+            throw new IllegalStateException("You don't have an active therapist");
+        }
+
+        // Завершаем терапию
+        userProfile.getUserMetaData().setCurrentTherapistId(null);
+        userProfile.getUserMetaData().setTherapyStartDate(null);
+
+        profileRepository.save(userProfile);
     }
 
     /**
