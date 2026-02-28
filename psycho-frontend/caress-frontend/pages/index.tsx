@@ -5,6 +5,7 @@ import styles from '@/styles/Home.module.css'
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import {authApi, User} from "@/services/authApi";
+import {checkAuth} from "@/utils/authUtils";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -13,17 +14,18 @@ export default function Home() {
 	const router =  useRouter();
 
 	useEffect(() => {
-		const checkAuthentication = async () => {
-			if (authApi.isAuthenticated()) {
-				router.replace('/home/')
-			}
-			else {
-				router.replace('/auth/login');
-			}
+		const init = async () => {
+			// Проверяем токен + валидность на сервере
+			const isAuthed = await checkAuth(router);
+			if (!isAuthed) return; // checkAuth сам редиректит на /auth/login
+
+			// Токен валидный — редиректим по роли
+			const role = authApi.getUserRole();
+			router.replace(role === 'SPECIALIST' ? '/specialist/home' : '/home');
 		};
 
-		checkAuthentication();
-	  }, []);
+		void init();
+	}, []);
 
   return (
     <>

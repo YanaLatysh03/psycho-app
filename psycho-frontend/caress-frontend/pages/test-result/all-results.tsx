@@ -5,6 +5,7 @@ import styles from '@/styles/main.module.css';
 import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { testResultApi, TestResult } from '@/services/testResultApi';
+import {checkAuth} from "@/utils/authUtils";
 
 export default function AllResultsView() {
     const router = useRouter();
@@ -13,11 +14,13 @@ export default function AllResultsView() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const loadResults = async () => {
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;
+
             try {
                 setIsLoading(true);
                 setError(null);
-
                 const token = localStorage.getItem('jwt_token');
                 const testResults = await testResultApi.getMyTestResults(token);
                 setResults(testResults);
@@ -29,8 +32,8 @@ export default function AllResultsView() {
             }
         };
 
-        loadResults();
-    }, []);
+        void init();
+    }, [router]);
 
     // Функция для определения цвета на основе интерпретации
     const getInterpretationColor = (interpretation: string): string => {

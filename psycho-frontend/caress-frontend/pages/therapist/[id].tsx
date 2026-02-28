@@ -6,12 +6,14 @@ import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import {
     profileApi, ProfileResponse,
-    getProblemAreaLabel, getTherapyApproachLabel,
+    getTherapyApproachLabel,
     getWorkFormatLabel, getTargetAudienceLabel,
     Gender
 } from '@/services/profileApi';
 import { therapyRequestApi } from '@/services/therapyRequestApi';
 import { MapPin, Award, DollarSign, Star, Clock, Users, Send, ChevronLeft } from 'lucide-react';
+import {getProblemAreaLabel} from "@/utils/problemAreaUtils";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function TherapistProfilePage() {
     const router = useRouter();
@@ -41,7 +43,12 @@ export default function TherapistProfilePage() {
     useEffect(() => {
         if (!id) return;
 
-        const load = async () => {
+        const init = async () => {
+            // Сначала проверяем авторизацию (без requiredRole — доступно обеим ролям)
+            const isAuthed = await checkAuth(router);
+            if (!isAuthed) return;
+
+            // Только после успешной проверки загружаем данные
             try {
                 setIsLoading(true);
                 const token = localStorage.getItem('jwt_token');
@@ -55,8 +62,8 @@ export default function TherapistProfilePage() {
             }
         };
 
-        load();
-    }, [id]);
+        void init();
+    }, [router, id]);
 
     const handleSendRequest = async () => {
         if (!id) return;

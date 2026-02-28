@@ -6,6 +6,7 @@ import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { testResultApi, AnonymousTestResult } from '@/services/testResultApi';
 import { BarChart3, TrendingUp, Users, Calendar } from 'lucide-react';
+import {checkAuth} from "@/utils/authUtils";
 
 export default function TestStatistics() {
     const router = useRouter();
@@ -17,11 +18,13 @@ export default function TestStatistics() {
     useEffect(() => {
         if (!id) return;
 
-        const loadStatistics = async () => {
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'SPECIALIST');
+            if (!isAuthed) return;
+
             try {
                 setIsLoading(true);
                 setError(null);
-
                 const token = localStorage.getItem('jwt_token');
                 const testResults = await testResultApi.getResultsByTestId(Number(id), token);
                 setResults(testResults);
@@ -33,8 +36,8 @@ export default function TestStatistics() {
             }
         };
 
-        loadStatistics();
-    }, [id]);
+        void init();
+    }, [router, id]);
 
     if (isLoading) {
         return (

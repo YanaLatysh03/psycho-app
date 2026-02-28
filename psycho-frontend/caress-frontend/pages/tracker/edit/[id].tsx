@@ -6,6 +6,7 @@ import TopBar from '@/components/topbar';
 import styles from '@/styles/main.module.css';
 import { trackerApi, Emotion, TrackerEntryRequest, TrackerEntryDetail } from '@/services/trackerApi';
 import { emotionLabels } from '@/utils/emotionUtils';
+import {checkAuth} from "@/utils/authUtils";
 
 // Группировка эмоций
 const emotionGroups = {
@@ -35,47 +36,44 @@ export default function EditTracker() {
     const [productivityLevel, setProductivityLevel] = useState<number>(5);
 
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-            } catch (error) {
-                router.push('/login');
-            }
-        };
-        checkAuth();
-    }, [router]);
-
-    // Загрузка текущих данных записи
-    useEffect(() => {
         if (!id) return;
 
-        const loadEntry = async () => {
-            try {
-                setIsLoadingEntry(true);
-                setError(null);
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                const token = localStorage.getItem('jwt_token');
-                const entry: TrackerEntryDetail = await trackerApi.getEntryById(parseInt(id as string), token);
-
-                // Заполнение формы текущими данными
-                setThoughts(entry.thoughts || '');
-                setThoughtsLevel(entry.thoughtsLevel || 5);
-                setSelectedEmotions(entry.emotions ? Array.from(entry.emotions) : []);
-                setEnergyLevel(entry.energyLevel || 5);
-                setSleepQuality(entry.sleepQuality || 5);
-                setStressLevel(entry.stressLevel || 5);
-                setStressTriggers(entry.stressTriggers || '');
-                setProductivityLevel(entry.productivityLevel || 5);
-
-            } catch (err) {
-                console.error('Error loading tracker entry:', err);
-                setError('Не удалось загрузить запись');
-            } finally {
-                setIsLoadingEntry(false);
-            }
+            await loadEntry();
         };
 
-        loadEntry();
-    }, [id]);
+        void init();
+    }, [router, id]);
+
+    // Загрузка текущих данных записи
+    const loadEntry = async () => {
+        try {
+            setIsLoadingEntry(true);
+            setError(null);
+
+            const token = localStorage.getItem('jwt_token');
+            const entry: TrackerEntryDetail = await trackerApi.getEntryById(parseInt(id as string), token);
+
+            // Заполнение формы текущими данными
+            setThoughts(entry.thoughts || '');
+            setThoughtsLevel(entry.thoughtsLevel || 5);
+            setSelectedEmotions(entry.emotions ? Array.from(entry.emotions) : []);
+            setEnergyLevel(entry.energyLevel || 5);
+            setSleepQuality(entry.sleepQuality || 5);
+            setStressLevel(entry.stressLevel || 5);
+            setStressTriggers(entry.stressTriggers || '');
+            setProductivityLevel(entry.productivityLevel || 5);
+
+        } catch (err) {
+            console.error('Error loading tracker entry:', err);
+            setError('Не удалось загрузить запись');
+        } finally {
+            setIsLoadingEntry(false);
+        }
+    };
 
     const toggleEmotion = (emotion: Emotion) => {
         if (selectedEmotions.includes(emotion)) {

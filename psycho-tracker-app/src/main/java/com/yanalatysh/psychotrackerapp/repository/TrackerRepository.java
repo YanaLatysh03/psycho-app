@@ -14,7 +14,7 @@ public interface TrackerRepository extends JpaRepository<Tracker, Long> {
 
     List<Tracker> findAllByUserIdOrderByEntryDatetimeDesc(Long userId, Pageable pageable);
 
-    List<Tracker> findAllByUserIdAndEntryDatetimeBetweenOrderByEntryDatetimeDesc(Long userId, LocalDateTime start, LocalDateTime end);
+    List<Tracker> findAllByUserIdAndEntryDatetimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
 
     List<Tracker> findAllByUserIdAndEntryDatetimeBetweenOrderByEntryDatetimeDesc(
             Long userId,

@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { testApi, Test, TestCategory } from '@/services/testApi';
 import TopBar from "@/components/topbar";
 import {authApi} from "@/services/authApi";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function Quiz() {
 	const router = useRouter();
@@ -19,9 +20,16 @@ export default function Quiz() {
 
 	// Получение роли пользователя
 	useEffect(() => {
-		const role = authApi.getUserRole();
-		setUserRole(role);
-	}, []);
+		const init = async () => {
+			const isAuthed = await checkAuth(router); // без роли — страница для обоих
+			if (!isAuthed) return;
+
+			// После успешной проверки — роль уже в localStorage
+			const role = authApi.getUserRole();
+			setUserRole(role);
+		};
+		void init();
+	}, [router]);
 
 	// Загрузка категорий
 	useEffect(() => {

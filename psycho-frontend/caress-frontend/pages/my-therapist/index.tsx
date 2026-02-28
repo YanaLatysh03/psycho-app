@@ -4,10 +4,12 @@ import { useRouter } from 'next/router';
 import styles from '@/styles/main.module.css';
 import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
-import { ProfileResponse, getProblemAreaLabel, getTherapyApproachLabel, getWorkFormatLabel, getTargetAudienceLabel } from '@/services/profileApi';
+import { ProfileResponse, getTherapyApproachLabel, getWorkFormatLabel, getTargetAudienceLabel } from '@/services/profileApi';
 import { specialistApi } from '@/services/specialistApi';
 import { profileApi } from '@/services/profileApi';
 import { MapPin, Award, Star, Clock, Users, AlertTriangle } from 'lucide-react';
+import {getProblemAreaLabel} from "@/utils/problemAreaUtils";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function MyTherapistPage() {
     const router = useRouter();
@@ -22,53 +24,61 @@ export default function MyTherapistPage() {
     const [hoveredStar, setHoveredStar] = useState(0);
 
     useEffect(() => {
-        const load = async () => {
-            try {
-                setIsLoading(true);
-                const token = localStorage.getItem('jwt_token');
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                // Грузим специалиста
-                const data = await specialistApi.getSpecialistForPatient(token);
-                setSpecialist(data);
-
-                // Грузим свой профиль чтобы получить therapyStartDate
-                try {
-                    const myProfile = await profileApi.getProfile(token);
-                    if (myProfile.userMetaData?.therapyStartDate) {
-                        setTherapyStartDate(myProfile.userMetaData.therapyStartDate);
-                    }
-                } catch (_) {
-                    // не критично
-                }
-            } catch (err: any) {
-                const code = err.message as string;
-                setErrorCode(code);
-
-                switch (code) {
-                    case 'E_NOT_HAVE_ACTIVE_SPECIALIST':
-                        setNotification({
-                            type: 'warning',
-                            message: 'У вас нет активного терапевта. Найдите специалиста и отправьте запрос на установление связи.'
-                        });
-                        break;
-                    case 'E_SPECIALIST_PROFILE_NOT_FOUND':
-                        setNotification({
-                            type: 'error',
-                            message: 'Профиль вашего специалиста не найден. Возможно, специалист удалил аккаунт. Вы можете выбрать нового специалиста.'
-                        });
-                        break;
-                    default:
-                        setNotification({
-                            type: 'error',
-                            message: 'Не удалось загрузить данные. Попробуйте позже.'
-                        });
-                }
-            } finally {
-                setIsLoading(false);
-            }
+            await load();
         };
-        load();
-    }, []);
+
+        void init();
+    }, [router]);
+
+    const load = async () => {
+        try {
+            setIsLoading(true);
+            const token = localStorage.getItem('jwt_token');
+
+            // Грузим специалиста
+            const data = await specialistApi.getSpecialistForPatient(token);
+            setSpecialist(data);
+
+            // Грузим свой профиль чтобы получить therapyStartDate
+            try {
+                const myProfile = await profileApi.getProfile(token);
+                if (myProfile.userMetaData?.therapyStartDate) {
+                    setTherapyStartDate(myProfile.userMetaData.therapyStartDate);
+                }
+            } catch (_) {
+                // не критично
+            }
+        } catch (err: any) {
+            const code = err.message as string;
+            setErrorCode(code);
+
+            switch (code) {
+                case 'E_NOT_HAVE_ACTIVE_SPECIALIST':
+                    setNotification({
+                        type: 'warning',
+                        message: 'У вас нет активного терапевта. Найдите специалиста и отправьте запрос на установление связи.'
+                    });
+                    break;
+                case 'E_SPECIALIST_PROFILE_NOT_FOUND':
+                    setNotification({
+                        type: 'error',
+                        message: 'Профиль вашего специалиста не найден. Возможно, специалист удалил аккаунт. Вы можете выбрать нового специалиста.'
+                    });
+                    break;
+                default:
+                    setNotification({
+                        type: 'error',
+                        message: 'Не удалось загрузить данные. Попробуйте позже.'
+                    });
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleEndTherapy = () => {
         if (!specialist) return;

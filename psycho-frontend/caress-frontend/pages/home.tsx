@@ -9,6 +9,7 @@ import { testApi, Test } from '@/services/testApi';
 import {trackerApi, GeneralState, GeneralStateResponse, TrackerEntrySummary, Emotion} from '@/services/trackerApi';
 import {emotionLabels} from "@/utils/emotionUtils";
 import {authApi} from "@/services/authApi";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function Home() {
 	const [suggestedTests, setSuggestedTests] = useState<Test[]>([]);
@@ -95,52 +96,44 @@ export default function Home() {
 	};
 
 	useEffect(() => {
-		const checkAuthentication = async () => {
-			try {
-				console.log(emojiDone);
+		const init = async () => {
+			const isAuthed = await checkAuth(router, 'USER');
+			if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-				const userRole = authApi.getUserRole();
-
-				// Если специалист - редирект на его страницу
-				if (userRole === 'SPECIALIST') {
-					router.push('/specialist/home');
-					return;
-				}
-
-				// Загрузка предложенных тестов
-				try {
-					const token = localStorage.getItem('jwt_token');
-					const tests = await testApi.getSuggestedTests(token);
-					setSuggestedTests(tests);
-				} catch (error) {
-					console.error('Error loading suggested tests:', error);
-				}
-
-				// Загрузка истории эмоций (добавьте это)
-				try {
-					const token = localStorage.getItem('jwt_token');
-					const history = await trackerApi.getRecentGeneralStates(token);
-					setEmojiHistory(history);
-				} catch (error) {
-					console.error('Error loading emoji history:', error);
-				}
-
-				// Загрузка сегодняшней записи трекера (добавьте это)
-				try {
-					const token = localStorage.getItem('jwt_token');
-					const entry = await trackerApi.getTodayLatestEntry(token);
-					setTodayEntry(entry);
-				} catch (error) {
-					console.error('Error loading today entry:', error);
-				}
-			} catch (error) {
-				console.log('Error checking authentication:', error);
-				router.replace('/login');
-			}
+			await loadHomeData();
 		};
 
-		checkAuthentication();
-	}, []);
+		void init();
+	}, [router]);
+
+	const loadHomeData = async () => {
+		// Загрузка предложенных тестов
+		try {
+			const token = localStorage.getItem('jwt_token');
+			const tests = await testApi.getSuggestedTests(token);
+			setSuggestedTests(tests);
+		} catch (error) {
+			console.error('Error loading suggested tests:', error);
+		}
+
+		// Загрузка истории эмоций (добавьте это)
+		try {
+			const token = localStorage.getItem('jwt_token');
+			const history = await trackerApi.getRecentGeneralStates(token);
+			setEmojiHistory(history);
+		} catch (error) {
+			console.error('Error loading emoji history:', error);
+		}
+
+		// Загрузка сегодняшней записи трекера (добавьте это)
+		try {
+			const token = localStorage.getItem('jwt_token');
+			const entry = await trackerApi.getTodayLatestEntry(token);
+			setTodayEntry(entry);
+		} catch (error) {
+			console.error('Error loading today entry:', error);
+		}
+	};
 
 	console.log('hello');
 	return (

@@ -6,6 +6,7 @@ import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { Users, Calendar, ClipboardList } from 'lucide-react';
 import {authApi} from "@/services/authApi";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function SpecialistHome() {
     const router = useRouter();
@@ -13,29 +14,20 @@ export default function SpecialistHome() {
     const [userEmail, setUserEmail] = useState('');
 
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const user = await authApi.getCurrentUser();
+        const init = async () => {
+            // 1. Проверка авторизации (токен + сервер + роль)
+            const isAuthed = await checkAuth(router, 'SPECIALIST');
+            if (!isAuthed) return; // редирект уже выполнен внутри checkAuth
 
-                if (user == null) {
-                    throw 'User is null';
-                }
+            // 2. После успешной проверки — достаём данные из localStorage
+            //    (они уже там с момента логина, синхронно)
+            const user = authApi.getCurrentUser();
+            if (user) setUserEmail(user.email);
 
-                if (user.role !== 'SPECIALIST') {
-                    console.log('Not a specialist, redirecting...');
-                    router.push('/home');
-                    return;
-                }
-
-                setUserEmail(user.email);
-                setIsLoading(false);
-            } catch (error) {
-                console.error('Not authenticated:', error);
-                router.push('/auth/login');
-            }
+            setIsLoading(false);
         };
 
-        checkAuth();
+        void init();
     }, [router]);
 
     if (isLoading) {

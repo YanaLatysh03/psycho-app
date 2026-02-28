@@ -9,6 +9,7 @@ import { ProfileResponse, Gender } from '@/services/profileApi';
 import { User, MapPin, Phone } from 'lucide-react';
 import {authApi} from "@/services/authApi";
 import { getProblemAreaLabel } from '@/utils/problemAreaUtils';
+import {checkAuth} from "@/utils/authUtils";
 
 export default function PatientsPage() {
     const router = useRouter();
@@ -17,33 +18,40 @@ export default function PatientsPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const loadPatients = async () => {
-            try {
-                const user = await authApi.getCurrentUser();
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'SPECIALIST');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                if (user == null) {
-                    throw 'User is null';
-                }
-
-                if (user.role !== 'SPECIALIST') {
-                    router.push('/home');
-                    return;
-                }
-
-                setIsLoading(true);
-                const token = localStorage.getItem('jwt_token');
-                const patientsData = await specialistApi.getMyPatients(token);
-                setPatients(patientsData);
-            } catch (err) {
-                console.error('Error loading patients:', err);
-                setError('Не удалось загрузить список пациентов');
-            } finally {
-                setIsLoading(false);
-            }
+            await loadPatients();
         };
 
-        loadPatients();
+        void init();
     }, [router]);
+
+    const loadPatients = async () => {
+        try {
+            const user = await authApi.getCurrentUser();
+
+            if (user == null) {
+                throw 'User is null';
+            }
+
+            if (user.role !== 'SPECIALIST') {
+                router.push('/home');
+                return;
+            }
+
+            setIsLoading(true);
+            const token = localStorage.getItem('jwt_token');
+            const patientsData = await specialistApi.getMyPatients(token);
+            setPatients(patientsData);
+        } catch (err) {
+            console.error('Error loading patients:', err);
+            setError('Не удалось загрузить список пациентов');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const calculateAge = (birthday: string): number => {
         const birthDate = new Date(birthday);

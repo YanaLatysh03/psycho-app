@@ -7,6 +7,7 @@ import TopBar from '@/components/topbar';
 import { therapyRequestApi, TherapyRequest, RequestStatus } from '@/services/therapyRequestApi';
 import { CheckCircle, XCircle, User, Clock, MessageSquare } from 'lucide-react';
 import {authApi} from "@/services/authApi";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function SpecialistRequestsPage() {
     const router = useRouter();
@@ -16,28 +17,35 @@ export default function SpecialistRequestsPage() {
     const [processingId, setProcessingId] = useState<number | null>(null);
 
     useEffect(() => {
-        const loadRequests = async () => {
-            try {
-                const userRole = await authApi.getUserRole();
-                if (userRole !== 'SPECIALIST') {
-                    router.push('/home');
-                    return;
-                }
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'SPECIALIST');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                setIsLoading(true);
-                const token = localStorage.getItem('jwt_token');
-                const data = await therapyRequestApi.getIncomingRequests(token);
-                setRequests(data);
-            } catch (err) {
-                console.error('Error loading requests:', err);
-                setError('Не удалось загрузить запросы');
-            } finally {
-                setIsLoading(false);
-            }
+            await loadRequests();
         };
 
-        loadRequests();
+        void init();
     }, [router]);
+
+    const loadRequests = async () => {
+        try {
+            const userRole = await authApi.getUserRole();
+            if (userRole !== 'SPECIALIST') {
+                router.push('/home');
+                return;
+            }
+
+            setIsLoading(true);
+            const token = localStorage.getItem('jwt_token');
+            const data = await therapyRequestApi.getIncomingRequests(token);
+            setRequests(data);
+        } catch (err) {
+            console.error('Error loading requests:', err);
+            setError('Не удалось загрузить запросы');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleAccept = async (requestId: number) => {
         try {

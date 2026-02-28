@@ -18,6 +18,7 @@ import {
     getTherapyApproachLabel
 } from '@/services/profileApi';
 import {getProblemAreaLabel} from "@/utils/problemAreaUtils";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -31,7 +32,6 @@ export default function ProfilePage() {
     const { error: queryError } = router.query;
     // Показываем баннер, если пришли с ошибкой
     const [profileRequiredNotice, setProfileRequiredNotice] = useState(false);
-
     // Форма данных
     const [formData, setFormData] = useState<CreateProfileRequest>({
         name: '',
@@ -60,63 +60,70 @@ export default function ProfilePage() {
     });
 
     useEffect(() => {
-        const loadProfile = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
+        const init = async () => {
+            const isAuthed = await checkAuth(router);
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                const token = localStorage.getItem('jwt_token');
-                const role = localStorage.getItem('user_role'); // 👈 Получить роль
-                setUserRole(role);
-
-                const profileData = await profileApi.getProfile(token);
-
-                setProfile(profileData);
-                setProfileExists(true);
-
-                // Заполнить форму данными профиля в зависимости от роли
-                setFormData({
-                    name: profileData.name,
-                    gender: profileData.gender,
-                    city: profileData.city,
-                    phone: profileData.phone,
-                    birthday: profileData.birthday,
-                    userMetaData: profileData.userMetaData || {
-                        problemAreas: [],
-                        therapyGoals: '',
-                        currentSituation: '',
-                        inCrisis: false
-                    },
-                    specialistMetaData: profileData.specialistMetaData || {
-                        education: '',
-                        specialization: '',
-                        yearsOfExperience: 0,
-                        approaches: [],
-                        problemAreas: [],
-                        workFormats: [],
-                        targetAudiences: [],
-                        sessionPrice: 0,
-                        sessionDuration: 60,
-                        providesFreeConsultation: false
-                    }
-                });
-            } catch (err: any) {
-                console.error('Error loading profile:', err);
-                if (err.message === 'PROFILE_NOT_FOUND') {
-                    const role = localStorage.getItem('user_role');
-                    setUserRole(role);
-                    setProfileExists(false);
-                    setIsEditing(true);
-                } else {
-                    setError('Не удалось загрузить профиль');
-                }
-            } finally {
-                setIsLoading(false);
-            }
+            await loadProfile();
         };
 
-        loadProfile();
-    }, []);
+        void init();
+    }, [router]);
+
+    const loadProfile = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const token = localStorage.getItem('jwt_token');
+            const role = localStorage.getItem('user_role'); // 👈 Получить роль
+            setUserRole(role);
+
+            const profileData = await profileApi.getProfile(token);
+
+            setProfile(profileData);
+            setProfileExists(true);
+
+            // Заполнить форму данными профиля в зависимости от роли
+            setFormData({
+                name: profileData.name,
+                gender: profileData.gender,
+                city: profileData.city,
+                phone: profileData.phone,
+                birthday: profileData.birthday,
+                userMetaData: profileData.userMetaData || {
+                    problemAreas: [],
+                    therapyGoals: '',
+                    currentSituation: '',
+                    inCrisis: false
+                },
+                specialistMetaData: profileData.specialistMetaData || {
+                    education: '',
+                    specialization: '',
+                    yearsOfExperience: 0,
+                    approaches: [],
+                    problemAreas: [],
+                    workFormats: [],
+                    targetAudiences: [],
+                    sessionPrice: 0,
+                    sessionDuration: 60,
+                    providesFreeConsultation: false
+                }
+            });
+        } catch (err: any) {
+            console.error('Error loading profile:', err);
+            if (err.message === 'PROFILE_NOT_FOUND') {
+                const role = localStorage.getItem('user_role');
+                setUserRole(role);
+                setProfileExists(false);
+                setIsEditing(true);
+            } else {
+                setError('Не удалось загрузить профиль');
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (queryError === 'profile_required') {

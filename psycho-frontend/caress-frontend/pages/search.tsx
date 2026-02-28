@@ -7,6 +7,7 @@ import { LucideSearch, LucideUser, LucideMapPin, LucideAward, LucideDollarSign, 
 import { useRouter } from 'next/router';
 import { searchApi, SpecialistProfile, SpecialistSearchCriteria, getProblemAreaLabel, getWorkFormatLabel } from '@/services/searchApi';
 import { ProblemArea } from '@/services/profileApi';
+import {checkAuth} from "@/utils/authUtils";
 
 export default function Search() {
 	const router = useRouter();
@@ -29,6 +30,17 @@ export default function Search() {
 	const [currentPage, setCurrentPage] = useState(0);
 	const [pageSize] = useState(10);
 	const [hasMore, setHasMore] = useState(true);
+
+	useEffect(() => {
+		const init = async () => {
+			const isAuthed = await checkAuth(router, 'USER');
+			if (!isAuthed) return;  // ← данные не грузим если не авторизован
+
+			await loadSpecialists();
+		};
+
+		void init();
+	}, [router]);
 
 	// Загрузка специалистов
 	const loadSpecialists = async (page: number = 0, append: boolean = false) => {
@@ -67,11 +79,6 @@ export default function Search() {
 			setIsLoading(false);
 		}
 	};
-
-	// Начальная загрузка
-	useEffect(() => {
-		loadSpecialists(0);
-	}, []);
 
 	// Закрытие dropdown при клике вне его
 	useEffect(() => {

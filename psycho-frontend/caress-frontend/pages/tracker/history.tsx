@@ -6,6 +6,7 @@ import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { trackerApi, TrackerEntrySummary, Emotion } from '@/services/trackerApi';
 import {emotionLabels} from "@/utils/emotionUtils";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function TrackerHistory() {
     const router = useRouter();
@@ -14,24 +15,31 @@ export default function TrackerHistory() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const loadEntries = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                const token = localStorage.getItem('jwt_token');
-                const trackerEntries = await trackerApi.getMyEntries(0, 50, token);
-                setEntries(trackerEntries);
-            } catch (err) {
-                console.error('Error loading tracker entries:', err);
-                setError('Не удалось загрузить записи трекера');
-            } finally {
-                setIsLoading(false);
-            }
+            await loadEntries();
         };
 
-        loadEntries();
-    }, []);
+        void init();
+    }, [router]);
+
+    const loadEntries = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const token = localStorage.getItem('jwt_token');
+            const trackerEntries = await trackerApi.getMyEntries(0, 50, token);
+            setEntries(trackerEntries);
+        } catch (err) {
+            console.error('Error loading tracker entries:', err);
+            setError('Не удалось загрузить записи трекера');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Группировка записей по датам
     const groupByDate = (entries: TrackerEntrySummary[]) => {

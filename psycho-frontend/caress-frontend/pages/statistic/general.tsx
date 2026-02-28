@@ -5,6 +5,7 @@ import styles from '@/styles/main.module.css';
 import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { statisticsApi, StatisticsResponse } from '@/services/statisticsApi';
+import {checkAuth} from "@/utils/authUtils";
 
 export default function GeneralStatistics() {
     const router = useRouter();
@@ -36,25 +37,32 @@ export default function GeneralStatistics() {
     };
 
     useEffect(() => {
-        const loadStats = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                const token = localStorage.getItem('jwt_token');
-                const { start, end } = getPeriodDates(period);
-                const statistics = await statisticsApi.getStatistics(start, end, token);
-                setStats(statistics);
-            } catch (err) {
-                console.error('Error loading statistics:', err);
-                setError('Не удалось загрузить статистику');
-            } finally {
-                setIsLoading(false);
-            }
+            await loadStats();
         };
 
-        loadStats();
-    }, [period]);
+        void init();
+    }, [router, period]);
+
+    const loadStats = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const token = localStorage.getItem('jwt_token');
+            const { start, end } = getPeriodDates(period);
+            const statistics = await statisticsApi.getStatistics(start, end, token);
+            setStats(statistics);
+        } catch (err) {
+            console.error('Error loading statistics:', err);
+            setError('Не удалось загрузить статистику');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const getTrendIcon = (trend: string) => {
         switch (trend) {

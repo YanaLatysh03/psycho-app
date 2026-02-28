@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import styles from '@/styles/quiz.module.css';
 import Head from 'next/head';
 import { testApi, TestDetails, QuestionAnswer } from '@/services/testApi';
+import {checkAuth} from "@/utils/authUtils";
 
 export default function DynamicTest() {
     const router = useRouter();
@@ -20,16 +21,16 @@ export default function DynamicTest() {
     // Загрузка теста
     useEffect(() => {
         if (!id) return;
-        // Получаем JWT токен
-        const token = localStorage.getItem('jwt_token');
 
-        async function fetchTest() {
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;
+
             try {
                 setIsLoading(true);
                 setError(null);
-
-                const testId = parseInt(id as string);
-                const testData = await testApi.getTestById(testId, token);
+                const token = localStorage.getItem('jwt_token');
+                const testData = await testApi.getTestById(Number(id), token);
                 setTest(testData);
             } catch (err) {
                 console.error('Error loading test:', err);
@@ -37,10 +38,10 @@ export default function DynamicTest() {
             } finally {
                 setIsLoading(false);
             }
-        }
+        };
 
-        fetchTest();
-    }, [id]);
+        void init();
+    }, [id, router]);
 
     // Обработка выбора ответа
     const handleAnswerClick = async (questionId: number, answerOptionId: number) => {

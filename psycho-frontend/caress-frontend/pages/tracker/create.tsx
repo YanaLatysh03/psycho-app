@@ -6,6 +6,7 @@ import TopBar from '@/components/topbar';
 import styles from '@/styles/main.module.css';
 import { trackerApi, Emotion, TrackerEntryRequest } from '@/services/trackerApi';
 import {emotionLabels} from "@/utils/emotionUtils";
+import {checkAuth} from "@/utils/authUtils";
 
 
 // Группировка эмоций
@@ -32,16 +33,9 @@ export default function CreateTracker() {
     const [stressTriggers, setStressTriggers] = useState('');
     const [productivityLevel, setProductivityLevel] = useState<number>(5);
 
-    // useEffect(() => {
-    //     const checkAuth = async () => {
-    //         try {
-    //             await auth.isLoggedIn();
-    //         } catch (error) {
-    //             router.push('/login');
-    //         }
-    //     };
-    //     checkAuth();
-    // }, [router]);
+    useEffect(() => {
+        void checkAuth(router, 'USER');
+    }, [router]);
 
     const toggleEmotion = (emotion: Emotion) => {
         if (selectedEmotions.includes(emotion)) {

@@ -6,6 +6,7 @@ import styles from '@/styles/results.module.css';
 import Head from 'next/head';
 import { testResultApi, TestResultDetails } from '@/services/testResultApi';
 import TopBar from "@/components/topbar";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function TestResult() {
     const router = useRouter();
@@ -18,16 +19,15 @@ export default function TestResult() {
     useEffect(() => {
         if (!id) return;
 
-        async function fetchResultDetails() {
+        const init = async () => {
+            const isAuthed = await checkAuth(router);  // без роли — доступно USER и SPECIALIST
+            if (!isAuthed) return;
+
             try {
                 setIsLoading(true);
                 setError(null);
-
                 const resultId = parseInt(id as string);
-
-                // Получаем JWT токен
                 const token = localStorage.getItem('jwt_token');
-
                 const resultData = await testResultApi.getResultDetailsById(resultId, token);
                 setResult(resultData);
             } catch (err) {
@@ -36,10 +36,10 @@ export default function TestResult() {
             } finally {
                 setIsLoading(false);
             }
-        }
+        };
 
-        fetchResultDetails();
-    }, [id]);
+        void init();
+    }, [router, id]);
 
     if (isLoading) {
         return (

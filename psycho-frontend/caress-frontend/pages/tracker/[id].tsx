@@ -6,6 +6,7 @@ import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { trackerApi, TrackerEntryDetail, Emotion } from '@/services/trackerApi';
 import {emotionLabels} from "@/utils/emotionUtils";
+import {checkAuth} from "@/utils/authUtils";
 
 export default function TrackerEntryDetail() {
     const router = useRouter();
@@ -19,24 +20,31 @@ export default function TrackerEntryDetail() {
     useEffect(() => {
         if (!id) return;
 
-        const loadEntry = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                const token = localStorage.getItem('jwt_token');
-                const entryData = await trackerApi.getEntryById(parseInt(id as string), token);
-                setEntry(entryData);
-            } catch (err) {
-                console.error('Error loading entry:', err);
-                setError('Не удалось загрузить запись');
-            } finally {
-                setIsLoading(false);
-            }
+            await loadEntry();
         };
 
-        loadEntry();
-    }, [id]);
+        void init();
+    }, [router, id]);
+
+    const loadEntry = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const token = localStorage.getItem('jwt_token');
+            const entryData = await trackerApi.getEntryById(parseInt(id as string), token);
+            setEntry(entryData);
+        } catch (err) {
+            console.error('Error loading entry:', err);
+            setError('Не удалось загрузить запись');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleDelete = async () => {
         if (!entry) return;

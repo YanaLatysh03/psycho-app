@@ -5,6 +5,7 @@ import styles from '@/styles/main.module.css';
 import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { statisticsApi, DailyAveragesResponse } from '@/services/statisticsApi';
+import {checkAuth} from "@/utils/authUtils";
 
 export default function DailyStatistics() {
     const router = useRouter();
@@ -33,25 +34,32 @@ export default function DailyStatistics() {
     };
 
     useEffect(() => {
-        const loadDailyStats = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                const token = localStorage.getItem('jwt_token');
-                const { start, end } = getPeriodDates(period);
-                const statistics = await statisticsApi.getDailyAverages(start, end, token);
-                setDailyStats(statistics);
-            } catch (err) {
-                console.error('Error loading daily statistics:', err);
-                setError('Не удалось загрузить статистику');
-            } finally {
-                setIsLoading(false);
-            }
+            await loadDailyStats();
         };
 
-        loadDailyStats();
-    }, [period]);
+        void init();
+    }, [router, period]);
+
+    const loadDailyStats = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const token = localStorage.getItem('jwt_token');
+            const { start, end } = getPeriodDates(period);
+            const statistics = await statisticsApi.getDailyAverages(start, end, token);
+            setDailyStats(statistics);
+        } catch (err) {
+            console.error('Error loading daily statistics:', err);
+            setError('Не удалось загрузить статистику');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('ru-RU', {

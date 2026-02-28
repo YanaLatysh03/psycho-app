@@ -6,6 +6,7 @@ import Bottombar from '@/components/bottombar';
 import TopBar from '@/components/topbar';
 import { therapyRequestApi, TherapyRequest, RequestStatus } from '@/services/therapyRequestApi';
 import { Clock, Send, XCircle, CheckCircle, ChevronRight } from 'lucide-react';
+import {checkAuth} from "@/utils/authUtils";
 
 const STATUS_CONFIG: Record<RequestStatus, { label: string; bgColor: string; color: string; icon: React.ReactNode }> = {
     [RequestStatus.PENDING]: {
@@ -40,6 +41,17 @@ export default function MyRequestsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+    useEffect(() => {
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'USER');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
+
+            await loadRequests();
+        };
+
+        void init();
+    }, [router]);
 
     const loadRequests = async () => {
         try {

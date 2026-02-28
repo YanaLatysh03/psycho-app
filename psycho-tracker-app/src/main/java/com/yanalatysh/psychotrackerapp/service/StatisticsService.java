@@ -53,7 +53,7 @@ public class StatisticsService {
     }
 
     public List<DailyAveragesResponseDTO> getDailyAverages(Long userId, LocalDateTime start, LocalDateTime end) {
-        List<Object[]> results = trackerRepository.findAllByUserIdAndEntryDatetimeBetweenOrderByEntryDatetimeDesc(
+        List<DailyAveragesResponseDTO> results = trackerRepository.findAllByUserIdAndEntryDatetimeBetween(
                         userId, start, end)
                 .stream()
                 .collect(Collectors.groupingBy(
@@ -89,18 +89,17 @@ public class StatisticsService {
                             .average()
                             .orElse(0.0);
 
-                    return new Object[]{date, avgEnergy, avgStress, avgSleep, avgProductivity, (long) trackers.size()};
+                    return new DailyAveragesResponseDTO(
+                            date,
+                            avgEnergy,
+                            avgStress,
+                            avgSleep,
+                            avgProductivity,
+                            (long) trackers.size()
+                    );
                 }).toList();
 
         return results.stream()
-                .map(row -> new DailyAveragesResponseDTO(
-                        (LocalDate) row[0],
-                        (Double) row[1],
-                        (Double) row[2],
-                        (Double) row[3],
-                        (Double) row[4],
-                        (Long) row[5]
-                ))
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                 .collect(Collectors.toList());
     }

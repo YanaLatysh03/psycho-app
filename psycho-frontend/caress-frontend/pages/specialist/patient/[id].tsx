@@ -12,6 +12,7 @@ import {authApi} from "@/services/authApi";
 import {emotionLabels} from "@/utils/emotionUtils";
 import {specialistApi} from "@/services/specialistApi";
 import {getProblemAreaLabel} from "@/utils/problemAreaUtils";
+import {checkAuth} from "@/utils/authUtils";
 
 type Tab = 'profile' | 'tracker' | 'tests';
 
@@ -36,57 +37,36 @@ export default function PatientDetailPage() {
     const [hasMoreTracker, setHasMoreTracker] = useState(true);
 
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const user = await authApi.getCurrentUser();
-
-                if (user == null) {
-                    throw 'User is null';
-                }
-
-                if (user.role !== 'SPECIALIST') {
-                    router.push('/home');
-                    return;
-                }
-            } catch (error) {
-                router.push('/auth/login');
-            }
-        };
-        checkAuth();
-    }, [router]);
-
-    // Загрузка данных пациента
-    useEffect(() => {
         if (!id) return;
 
-        const loadPatientData = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const token = localStorage.getItem('jwt_token');
+        const init = async () => {
+            const isAuthed = await checkAuth(router, 'SPECIALIST');
+            if (!isAuthed) return;  // ← данные не грузим если не авторизован
 
-                // ✅ Стало — грузим профиль напрямую + определяем роль:
-                const profile = await profileApi.getUserProfileByUserId(Number(id), token);
-                setPatient(profile);
-
-                // Чтобы сравнить currentTherapistId, нужен ID самого специалиста.
-                // Берём из своего профиля:
-                const myProfile = await profileApi.getProfile(token);
-                const myId = myProfile?.userId;
-                setSpecialistOwnId(myId ?? null);
-
-                const isTherapist = profile.userMetaData?.currentTherapistId === myId;
-                setIsCurrentTherapist(isTherapist);
-            } catch (err) {
-                console.error('Error loading patient:', err);
-                setError('Не удалось загрузить данные пациента');
-            } finally {
-                setIsLoading(false);
-            }
+            await loadPatientData();
         };
 
-        loadPatientData();
-    }, [id]);
+        void init();
+    }, [router, id]);
+
+    const loadPatientData = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const token = localStorage.getItem('jwt_token');
+            const profile = await profileApi.getUserProfileByUserId(Number(id), token);
+            setPatient(profile);
+            const myProfile = await profileApi.getProfile(token);
+            const myId = myProfile?.userId;
+            setSpecialistOwnId(myId ?? null);
+            setIsCurrentTherapist(profile.userMetaData?.currentTherapistId === myId);
+        } catch (err) {
+            console.error('Error loading patient:', err);
+            setError('Не удалось загрузить данные пациента');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Загрузка данных трекера
     const loadTrackerData = async (page: number = 0) => {
