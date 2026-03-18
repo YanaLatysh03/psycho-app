@@ -20,11 +20,13 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
     token: string;
+    id: string;
     email: string;
     role: string;
 }
 
 export interface User {
+    id: string;
     email: string;
     role: string;
 }
@@ -53,6 +55,7 @@ export const authApi = {
         // Сохраняем токен в localStorage
         localStorage.setItem('jwt_token', data.token);
         localStorage.setItem('user_email', data.email);
+        localStorage.setItem('user_id', data.id);
         localStorage.setItem('user_role', data.role.replaceAll('ROLE_', ''));
 
         return data;
@@ -83,6 +86,7 @@ export const authApi = {
         // Сохраняем токен в localStorage
         localStorage.setItem('jwt_token', data.token);
         localStorage.setItem('user_email', data.email);
+        localStorage.setItem('user_id', data.id);
         localStorage.setItem('user_role', data.role.replaceAll('ROLE_', ''));
 
         return data;
@@ -93,6 +97,7 @@ export const authApi = {
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user_email');
         localStorage.removeItem('user_role');
+        localStorage.removeItem('user_id');
     },
 
     // Получить токен
@@ -120,11 +125,12 @@ export const authApi = {
         const token = localStorage.getItem('jwt_token');
         const email = localStorage.getItem('user_email');
         const role = localStorage.getItem('user_role');
+        const id = localStorage.getItem('user_id');
 
-        if (!token || !email) {
+        if (!token || !email || !id) {
             return null;
         }
 
-        return { email, role: role || 'USER' };
+        return { email, id, role: role || 'USER' };
     }
 };

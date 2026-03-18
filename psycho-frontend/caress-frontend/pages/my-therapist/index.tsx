@@ -63,6 +63,12 @@ export default function MyTherapistPage() {
                         message: 'У вас нет активного терапевта. Найдите специалиста и отправьте запрос на установление связи.'
                     });
                     break;
+                case 'E_USER_PROFILE_NOT_FOUND_FOR_AVAILABILITY_OF_SPECIALIST':
+                    setNotification({
+                        type: 'warning',
+                        message: 'У вас нет активного терапевта. Найдите специалиста и отправьте запрос на установление связи.'
+                    });
+                    break;
                 case 'E_SPECIALIST_PROFILE_NOT_FOUND':
                     setNotification({
                         type: 'error',

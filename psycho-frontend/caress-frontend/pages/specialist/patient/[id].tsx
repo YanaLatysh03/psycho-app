@@ -137,6 +137,17 @@ export default function PatientDetailPage() {
         return emotionLabels[emotion] || emotion;
     };
 
+    const goToChat = () => {
+        router.replace({
+            pathname: '/chat',
+            query: {
+                opponentId: patient?.userId,
+                opponentName: patient?.name
+            }
+        });
+
+    }
+
     if (isLoading) {
         return (
             <>
@@ -543,6 +554,21 @@ export default function PatientDetailPage() {
                         </div>
                     </div>
                 )}
+
+                {/* Кнопка чата */}
+                <button
+                    className={styles.btn}
+                    onClick={goToChat}
+                    style={{
+                        width: '320px',
+                        display: 'block',
+                        margin: '20px auto 30px',
+                        background: '#f3f4f6',
+                        color: '#374151'
+                    }}
+                >
+                    К чату
+                </button>
 
                 {/* Кнопка назад */}
                 <button

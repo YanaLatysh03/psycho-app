@@ -71,7 +71,7 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
      * Поиск специалистов по коллекциям (approaches, problemAreas и т.д.)
      */
     @Query("""
-        SELECT DISTINCT p FROM Profile p
+        SELECT p FROM Profile p
         LEFT JOIN p.specialistMetaData sm
         LEFT JOIN sm.approaches a
         LEFT JOIN sm.problemAreas pa

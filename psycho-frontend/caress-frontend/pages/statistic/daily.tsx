@@ -15,7 +15,7 @@ export default function DailyStatistics() {
     const [period, setPeriod] = useState<'week' | 'month'>('week');
 
     const getPeriodDates = (periodType: 'week' | 'month') => {
-        const end = new Date();
+        const end = new Date(+new Date() + 3*60*60*1000);
         const start = new Date();
 
         switch (periodType) {

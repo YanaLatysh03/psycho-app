@@ -4,9 +4,12 @@ import com.yanalatysh.psychoauthapp.dto.AuthRequest;
 import com.yanalatysh.psychoauthapp.dto.AuthResponse;
 import com.yanalatysh.psychoauthapp.dto.RegisterRequest;
 import com.yanalatysh.psychoauthapp.dto.TokenValidationResponse;
+import com.yanalatysh.psychoauthapp.entity.ErrorCode;
 import com.yanalatysh.psychoauthapp.entity.Role;
+import com.yanalatysh.psychoauthapp.exception.AuthInvalidStateException;
 import com.yanalatysh.psychoauthapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import com.yanalatysh.psychoauthapp.entity.User;
@@ -30,7 +33,7 @@ public class AuthenticationService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("User with email " + request.getEmail() + " already exists");
+            throw new AuthInvalidStateException(ErrorCode.E_EMAIL_ALREADY_EXISTS.name(), HttpStatus.CONFLICT);
         }
 
         var user = User.builder()
@@ -46,6 +49,7 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(user);
 
         return AuthResponse.builder()
+                .id(user.getId())
                 .token(jwtToken)
                 .email(user.getEmail())
                 .role("ROLE_" + user.getRole().name())
@@ -60,11 +64,12 @@ public class AuthenticationService {
                 )
         );
 
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        User userDetails = (User) auth.getPrincipal();
 
         var jwtToken = jwtService.generateToken(userDetails);
 
         return AuthResponse.builder()
+                .id(userDetails.getId())
                 .token(jwtToken)
                 .email(userDetails.getUsername())
                 // TODO: вынести получение родит в getter на класс User

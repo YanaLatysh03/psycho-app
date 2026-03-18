@@ -28,7 +28,7 @@ public class SpecialistService {
 
     public ProfileResponseDTO getSpecialistForPatient(Long userId) {
         var patientProfile = profileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.E_USER_PROFILE_NOT_FOUND.name()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.E_USER_PROFILE_NOT_FOUND_FOR_AVAILABILITY_OF_SPECIALIST.name()));
 
         if (patientProfile.getUserMetaData() == null
                 || patientProfile.getUserMetaData().getCurrentTherapistId() == null) {

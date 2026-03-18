@@ -37,7 +37,7 @@ export default function LoginPage() {
             if (response.role === 'SPECIALIST') {
                 router.push('/specialist/home');
             } else if (response.role === 'ADMIN') {
-                router.push('/admin/dashboard');
+                router.push('/admin/users');
             } else {
                 // USER или другая роль
                 router.push('/home');

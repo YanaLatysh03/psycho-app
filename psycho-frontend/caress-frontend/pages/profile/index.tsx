@@ -302,6 +302,30 @@ export default function ProfilePage() {
                         {profileExists ? '✏️ Редактировать профиль' : '📝 Создать профиль'}
                     </div>
 
+                    {/* Уведомление об отсутствии профиля */}
+                    {!profileExists && (
+                        <div style={{
+                            backgroundColor: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '12px',
+                            padding: '16px 20px',
+                            marginBottom: '20px',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '12px'
+                        }}>
+                            <span style={{ fontSize: '22px' }}>👋</span>
+                            <div>
+                                <div style={{ fontWeight: '600', fontSize: '15px', color: '#1e40af', marginBottom: '4px' }}>
+                                    У вас пока нет профиля
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#3b82f6', lineHeight: '1.5' }}>
+                                    Заполните его, чтобы пользоваться всеми функциями сервиса — поиском специалистов, отслеживанием состояния и тестами.
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {error && (
                         <div style={{
                             padding: '12px',

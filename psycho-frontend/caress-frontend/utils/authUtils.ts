@@ -58,7 +58,11 @@ export const checkAuth = async (
         console.log('userRole: ', userRole)
         if (userRole !== requiredRole) {
             // Роль не совпадает — на главную по роли, не на логин
-            const homeRoute = userRole === 'SPECIALIST' ? '/specialist/home' : '/home';
+            const homeRoute = userRole === 'SPECIALIST'
+                ? '/specialist/home'
+                : userRole === 'ADMIN'
+                    ? '/admin/users'
+                    : '/home';
             router.push(homeRoute);
             return false;
         }

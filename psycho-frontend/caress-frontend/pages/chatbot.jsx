@@ -5,9 +5,7 @@ import { LucideArrowLeft, LucideSend, LucideUser } from 'lucide-react';
 import { useRouter } from 'next/router';
 import firebase from '@/firebase/clientApp';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { Query } from '@firebase/firestore';
 import 'firebase/firestore';
-import auth from '@/firebase/detectSignin';
 
 export default function ChatBot() {
 
@@ -25,7 +23,7 @@ export default function ChatBot() {
 
 	//const [user, setUser] = useState("");
 
-	
+
 	const router = useRouter();
 
 	const goBack = () => {
@@ -110,9 +108,9 @@ export default function ChatBot() {
 	function ChatMessage(props) {
 		//const { text, uid } = props.message;
 		const { text, uid, photoURL } = props.message;
-	
+
 		const messageClass = uid === user.uid ? styles.sent : styles.received;
-	
+
 		return (<>
 <div className={`${styles.message} ${messageClass}`}>
 {photoURL ? <img className={styles.img} src={photoURL} /> : <div className={styles.chatAvatars}> <LucideUser/> </div>}
@@ -120,7 +118,7 @@ export default function ChatBot() {
 			</div>
 		</>)
 	}
-	
+
 
 
 	return (

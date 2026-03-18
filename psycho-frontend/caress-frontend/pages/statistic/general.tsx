@@ -15,7 +15,7 @@ export default function GeneralStatistics() {
     const [period, setPeriod] = useState<'week' | 'month' | '3months'>('month');
 
     const getPeriodDates = (periodType: 'week' | 'month' | '3months') => {
-        const end = new Date();
+        const end = new Date(+new Date() + 3*60*60*1000);
         const start = new Date();
 
         switch (periodType) {
